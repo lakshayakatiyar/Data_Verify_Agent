@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Data Verification Agent</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, rgba(20,184,166,0.25), transparent 32%),
+                radial-gradient(circle at bottom right, rgba(34,197,94,0.16), transparent 35%),
+                linear-gradient(135deg, #020617, #0f172a);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .page {
+            min-height: 100vh;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 1180px;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 18px;
+        }
+
+        .sidebar,
+        .main {
+            background: rgba(15, 23, 42, 0.86);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 24px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.42);
+            backdrop-filter: blur(18px);
+        }
+
+        .sidebar {
+            padding: 22px;
+        }
+
+        .main {
+            padding: 28px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 58px;
+            height: 58px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #22c55e, #14b8a6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 0 35px rgba(20,184,166,0.45);
+        }
+
+        .brand h2 {
+            font-size: 24px;
+            line-height: 1.1;
+        }
+
+        .brand p {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .status-box {
+            background: rgba(2, 6, 23, 0.55);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 18px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .pulse {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(34,197,94,0.6);
+            }
+
+            70% {
+                box-shadow: 0 0 0 13px rgba(34,197,94,0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(34,197,94,0);
+            }
+        }
+
+        .status-box p {
+            color: #cbd5e1;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .checks {
+            display: grid;
+            gap: 10px;
+        }
+
+        .check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(2, 6, 23, 0.42);
+            border: 1px solid rgba(148, 163, 184, 0.13);
+            border-radius: 14px;
+            padding: 12px;
+            font-size: 14px;
+            color: #dbeafe;
+        }
+
+        .tick {
+            width: 25px;
+            height: 25px;
+            border-radius: 8px;
+            background: rgba(34,197,94,0.16);
+            color: #86efac;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 15px;
+            border-radius: 999px;
+            background: rgba(34,197,94,0.13);
+            color: #bbf7d0;
+            border: 1px solid rgba(34,197,94,0.28);
+            font-size: 14px;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            font-size: 44px;
+            line-height: 1.08;
+            letter-spacing: -1px;
+            margin-bottom: 12px;
+        }
+
+        h1 span {
+            background: linear-gradient(135deg, #86efac, #5eead4, #ffffff);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .subtitle {
+            color: #cbd5e1;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 850px;
+            margin-bottom: 18px;
+        }
+
+        .summary-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .summary-card {
+            background: rgba(2, 6, 23, 0.48);
+            border: 1px solid rgba(148,163,184,0.14);
+            border-radius: 16px;
+            padding: 15px;
+        }
+
+        .summary-card strong {
+            display: block;
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .summary-card span {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .columns-box {
+            background: rgba(2, 6, 23, 0.55);
+            border: 1px solid rgba(94,234,212,0.16);
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 18px;
+        }
+
+        .columns-box h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip {
+            padding: 7px 11px;
+            border-radius: 999px;
+            background: rgba(20,184,166,0.12);
+            border: 1px solid rgba(20,184,166,0.24);
+            color: #99f6e4;
+            font-size: 13px;
+        }
+
+        .upload-box {
+            background: linear-gradient(135deg, rgba(15,23,42,0.9), rgba(30,41,59,0.7));
+            border: 1.5px dashed rgba(148,163,184,0.42);
+            border-radius: 22px;
+            padding: 20px;
+        }
+
+        .upload-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .upload-top h2 {
+            font-size: 22px;
+        }
+
+        .secure {
+            font-size: 13px;
+            color: #86efac;
+            border: 1px solid rgba(34,197,94,0.26);
+            background: rgba(34,197,94,0.1);
+            padding: 7px 11px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .file-preview {
+            min-height: 95px;
+            background: rgba(2, 6, 23, 0.55);
+            border: 1px solid rgba(148,163,184,0.15);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px;
+            margin-bottom: 14px;
+        }
+
+        .file-icon {
+            width: 58px;
+            height: 58px;
+            border-radius: 18px;
+            background: rgba(34,197,94,0.14);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            flex-shrink: 0;
+        }
+
+        .file-preview h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .file-preview p {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr;
+            gap: 12px;
+        }
+
+        .choose-btn,
+        .verify-btn,
+        .download-btn {
+            height: 54px;
+            border-radius: 16px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: 0.25s ease;
+        }
+
+        .choose-btn {
+            background: rgba(255,255,255,0.08);
+            color: #e2e8f0;
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+
+        .verify-btn {
+            background: linear-gradient(135deg, #86efac, #14b8a6);
+            color: #052e16;
+            box-shadow: 0 16px 40px rgba(20,184,166,0.24);
+        }
+
+        .choose-btn:hover,
+        .verify-btn:hover,
+        .download-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .note {
+            margin-top: 12px;
+            color: #94a3b8;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .error {
+            margin-top: 16px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: rgba(239,68,68,0.12);
+            border: 1px solid rgba(239,68,68,0.28);
+            color: #fecaca;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .result-box {
+            margin-top: 16px;
+            background: rgba(2, 6, 23, 0.58);
+            border: 1px solid rgba(34,197,94,0.25);
+            border-radius: 20px;
+            padding: 18px;
+        }
+
+        .result-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .result-head h2 {
+            font-size: 21px;
+        }
+
+        .result-head p {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .success-tag {
+            color: #bbf7d0;
+            border: 1px solid rgba(34,197,94,0.28);
+            background: rgba(34,197,94,0.12);
+            padding: 7px 10px;
+            border-radius: 999px;
+            font-size: 13px;
+            height: fit-content;
+            white-space: nowrap;
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .stat {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(148,163,184,0.13);
+            border-radius: 15px;
+            padding: 13px;
+            text-align: center;
+        }
+
+        .stat h3 {
+            font-size: 25px;
+        }
+
+        .stat span {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .download-btn {
+            width: 100%;
+            background: #ffffff;
+            color: #020617;
+        }
+
+        .loader {
+            position: fixed;
+            inset: 0;
+            background: rgba(2,6,23,0.82);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+
+        .loader-card {
+            width: 90%;
+            max-width: 420px;
+            background: rgba(15,23,42,0.96);
+            border: 1px solid rgba(94,234,212,0.24);
+            border-radius: 24px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .circle {
+            width: 76px;
+            height: 76px;
+            margin: 0 auto 18px;
+            border-radius: 50%;
+            border: 3px solid rgba(34,197,94,0.18);
+            border-top-color: #22c55e;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loader-card p {
+            color: #94a3b8;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        @media(max-width: 950px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            h1 {
+                font-size: 34px;
+            }
+
+            .summary-row,
+            .result-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width: 600px) {
+            .page {
+                padding: 12px;
+            }
+
+            .main {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 30px;
+            }
+
+            .actions,
+            .summary-row,
+            .result-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .upload-top,
+            .result-head {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="loader" id="loader">
+        <div class="loader-card">
+            <div class="circle"></div>
+            <h2>Agent is verifying data...</h2>
+            <p>Checking email, mobile, website, address and fake patterns.</p>
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="app">
+
+            <aside class="sidebar">
+                <div class="brand">
+                    <div class="logo">🤖</div>
+                    <div>
+                        <h2>VerifyX Agent</h2>
+                        <p>Business Data Intelligence</p>
+                    </div>
+                </div>
+
+                <div class="status-box">
+                    <div class="status">
+                        <div class="pulse"></div>
+                        Agent Status: Online
+                    </div>
+                    <p>
+                        Upload Excel and the agent will classify records into Real,
+                        Needs Review and Fake.
+                    </p>
+                </div>
+
+                <div class="checks">
+                    <div class="check">
+                        <div class="tick">✓</div>
+                        Business name check
+                    </div>
+
+                    <div class="check">
+                        <div class="tick">✓</div>
+                        Mobile number check
+                    </div>
+
+                    <div class="check">
+                        <div class="tick">✓</div>
+                        Email domain check
+                    </div>
+
+                    <div class="check">
+                        <div class="tick">✓</div>
+                        Website live check
+                    </div>
+                </div>
+            </aside>
+
+            <main class="main">
+                <div class="badge">⚡ AI Powered Excel Verification Agent</div>
+
+                <h1>
+                    Verify Business Data With <span>Smart Agent</span>
+                </h1>
+
+                <p class="subtitle">
+                    Upload your Excel sheet and verify business name, category, mobile,
+                    email, address and website URL in one click.
+                </p>
+
+                <div class="summary-row">
+                    <div class="summary-card">
+                        <strong>7+</strong>
+                        <span>Verification Parameters</span>
+                    </div>
+
+                    <div class="summary-card">
+                        <strong>100</strong>
+                        <span>Score Based System</span>
+                    </div>
+
+                    <div class="summary-card">
+                        <strong>3</strong>
+                        <span>Final Categories</span>
+                    </div>
+                </div>
+
+                <div class="columns-box">
+                    <h3>Required Excel Columns</h3>
+
+                    <div class="chips">
+                        <div class="chip">business_name</div>
+                        <div class="chip">business_category</div>
+                        <div class="chip">mobile_number</div>
+                        <div class="chip">email</div>
+                        <div class="chip">business_description</div>
+                        <div class="chip">address</div>
+                        <div class="chip">website_url</div>
+                    </div>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" class="upload-box" id="uploadForm">
+
+                    <div class="upload-top">
+                        <h2>Upload Excel File</h2>
+                        <div class="secure">🔐 Local Processing</div>
+                    </div>
+
+                    <div class="file-preview">
+                        <div class="file-icon">📊</div>
+
+                        <div>
+                            <h3>Select Excel Sheet</h3>
+                            <p id="fileName">No file selected yet</p>
+                        </div>
+                    </div>
+
+                    <input type="file" id="fileInput" name="file" accept=".xlsx,.xls" required>
+
+                    <div class="actions">
+                        <label for="fileInput" class="choose-btn">
+                            📁 Choose File
+                        </label>
+
+                        <button type="submit" class="verify-btn">
+                            🚀 Verify Data
+                        </button>
+                    </div>
+
+                    <div class="note">
+                        Output sheets: All_Data, Real_Data, Needs_Review, Fake_Data
+                    </div>
+                </form>
+
+                {% if error %}
+                    <div class="error">
+                        <strong>Error:</strong><br>
+                        {{ error }}
+                    </div>
+                {% endif %}
+
+                {% if success %}
+                    <div class="result-box">
+                        <div class="result-head">
+                            <div>
+                                <h2>Verification Completed</h2>
+                                <p>Your Excel data has been checked successfully.</p>
+                            </div>
+
+                            <div class="success-tag">✅ Scan Complete</div>
+                        </div>
+
+                        <div class="result-stats">
+                            <div class="stat">
+                                <h3>{{ total_records }}</h3>
+                                <span>Total</span>
+                            </div>
+
+                            <div class="stat">
+                                <h3>{{ real_count }}</h3>
+                                <span>Real</span>
+                            </div>
+
+                            <div class="stat">
+                                <h3>{{ review_count }}</h3>
+                                <span>Review</span>
+                            </div>
+
+                            <div class="stat">
+                                <h3>{{ fake_count }}</h3>
+                                <span>Fake</span>
+                            </div>
+                        </div>
+
+                        <a class="download-btn" href="/download/{{ download_file }}">
+                            ⬇ Download Verified Excel
+                        </a>
+                    </div>
+                {% endif %}
+
+            </main>
+
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById("fileInput");
+        const fileName = document.getElementById("fileName");
+        const uploadForm = document.getElementById("uploadForm");
+        const loader = document.getElementById("loader");
+
+        fileInput.addEventListener("change", function () {
+            if (fileInput.files.length > 0) {
+                fileName.textContent = fileInput.files[0].name;
+            } else {
+                fileName.textContent = "No file selected yet";
+            }
+        });
+
+        uploadForm.addEventListener("submit", function () {
+            loader.style.display = "flex";
+        });
+    </script>
+
+</body>
+</html>
